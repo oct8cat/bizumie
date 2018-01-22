@@ -42,15 +42,39 @@ describe('Upload file', () => {
         assert.equal(res.status, 200)
         assert.ok(res.body.upload.id)
         assert.ok(res.body.upload.url)
+        assert.equal(res.body.upload.user, null)
         return Promise.all([
-          uploadModel(db).findById(res.body.upload.id),
-          req.get(res.body.upload.url)
+          req.get(res.body.upload.url),
+          uploadModel(db).findById(res.body.upload.id)
         ])
-          .then(([upload, res]) => {
-            assert.equal(upload.mimetype, 'image/png')
-            assert.equal(upload.originalname, 'image.png')
+          .then(([res, upload]) => {
             assert.equal(res.status, 200)
             assert.equal(res.headers['content-type'], 'application/octet-stream')
+            assert.equal(upload.mimetype, 'image/png')
+            assert.equal(upload.originalname, 'image.png')
+          })
+      })
+  })
+  it('sets upload user for authorized users', () => {
+    return clearDb(db)
+      .then(() => userModel(db).create({displayName: 'uploader'}))
+      .then((user) => {
+        return req
+          .post('/upload')
+          .set('authorization', `Bearer ${generateUserToken(user)}`)
+          .attach('upload', path.resolve(__dirname, 'image.png'))
+          .then((res) => {
+            assert.equal(res.status, 200)
+            assert.equal(res.body.upload.user.id, user.id)
+            return Promise.all([
+              req.get(res.body.upload.url),
+              uploadModel(db).findById(res.body.upload.id)
+            ])
+              .then(([res, upload]) => {
+                assert.equal(res.status, 200)
+                assert.equal(res.headers['content-type'], 'application/octet-stream')
+                assert.equal(upload.user, user.id)
+              })
           })
       })
   })
