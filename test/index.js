@@ -5,7 +5,7 @@ const {createApp} = require('../lib/http')
 const path = require('path')
 const assert = require('assert')
 const {ERR_UNSUPPORTED, ERR_REQUIRED} = require('../lib/const')
-const {exec, schema, requestStrings: {uploadsString}} = require('../lib/graphql')
+const {exec, schema, requestStrings: {uploadsString, meString}} = require('../lib/graphql')
 
 const db = createDb()
 const ctx = {db}
@@ -55,7 +55,7 @@ describe('Upload file', () => {
   })
 })
 
-describe('List uploads', () => {
+describe('View uploads', () => {
   it('actually works', () => {
     return clearDb(db)
       .then(() => exec(schema, uploadsString, {}, ctx))
@@ -74,6 +74,23 @@ describe('List uploads', () => {
         assert.equal(data.uploads.length, 1)
         assert.ok(data.uploads[0].id)
         assert.ok(data.uploads[0].url)
+      })
+  })
+})
+
+describe('View current user profile', () => {
+  it('is null for anonymous', () => {
+    return exec(schema, meString, {}, ctx)
+      .then(({errors, data}) => {
+        if (errors) return Promise.reject(Object.assign(new Error(), {errors}))
+        assert.equal(data.me, null)
+      })
+  })
+  it('is an object for authorized user', () => {
+    return exec(schema, meString, {}, {user: {id: 'foo'}, ...ctx})
+      .then(({errors, data}) => {
+        if (errors) return Promise.reject(Object.assign(new Error(), {errors}))
+        assert.equal(data.me.id, 'foo')
       })
   })
 })
