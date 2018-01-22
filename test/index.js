@@ -1,11 +1,12 @@
 /* eslint-env mocha */
 const supertest = require('supertest')
-const {clearDb, uploadModel, connectDb, disconnectDb, createDb} = require('../lib/db')
+const {clearDb, userModel, uploadModel, connectDb, disconnectDb, createDb} = require('../lib/db')
 const {createApp} = require('../lib/http')
 const path = require('path')
 const assert = require('assert')
 const {ERR_UNSUPPORTED, ERR_REQUIRED} = require('../lib/const')
 const {exec, schema, requestStrings: {uploadsString, meString}} = require('../lib/graphql')
+const {generateUserToken} = require('../lib/util')
 
 const db = createDb()
 const ctx = {db}
@@ -91,6 +92,36 @@ describe('View current user profile', () => {
       .then(({errors, data}) => {
         if (errors) return Promise.reject(Object.assign(new Error(), {errors}))
         assert.equal(data.me.id, 'foo')
+      })
+  })
+})
+
+describe('JWT authorization', () => {
+  it('rejects invalid JWT', () => {
+    return req
+      .post('/graphql')
+      .set('authorization', `Bearer foo`)
+      .expect(401)
+  })
+  it('rejects token if the user is not found', () => {
+    return req
+      .post('/graphql')
+      .set('authorization', `Bearer ${generateUserToken({id: '000000000000000000000000'})}`) // Token is valid, but the user is not found
+      .expect(401)
+  })
+  it('accepts token if the user is found', () => {
+    return clearDb(db)
+      .then(() => userModel(db).create({displayName: 'foo'}))
+      .then((user) => {
+        return req
+          .post('/graphql')
+          .set('authorization', `Bearer ${generateUserToken(user)}`)
+          .send({query: meString})
+          .then((res) => {
+            assert.equal(res.status, 200)
+            assert.ok(res.body.data.me.id)
+            assert.equal(res.body.data.me.displayName, 'foo')
+          })
       })
   })
 })
