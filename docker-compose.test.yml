@@ -1,5 +1,5 @@
 sut:
-  build: .
+  image: oct8cat/bizumie:latest
   command: npm test
   environment:
     NODE_ENV: test
