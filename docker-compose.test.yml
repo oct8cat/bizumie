@@ -1,10 +1,11 @@
-version: '2'
-services:
-  mongo:
-    image: mongo
-  sut:
-    build: .
-    command: npm test
-    environment:
-      NODE_ENV: test
-      DB_URL: mongodb://mongo/bizumie-test
+sut:
+  build: .
+  command: npm test
+  environment:
+    NODE_ENV: test
+    DB_URL: mongodb://bizumie-mongo/bizumie-test
+  links:
+    - bizumie-mongo
+
+bizumie-mongo:
+  image: mongo:latest
