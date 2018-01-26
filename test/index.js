@@ -1,11 +1,13 @@
 /* eslint-env mocha */
 const supertest = require('supertest')
-const {clearDb, userModel, connectDb, disconnectDb, createDb} = require('../lib/db')
-const {createApp} = require('../lib/http')
 const path = require('path')
 const assert = require('assert')
+const WebSocket = require('ws')
+const {clearDb, userModel, connectDb, disconnectDb, createDb} = require('../lib/db')
+const {stopWSServer, stopServer, createWSServer, startServer, createServer, createApp} = require('../lib/http')
 const {exec, schema, requestStrings: {uploadsString, meString}} = require('../lib/graphql')
 const {generateUserToken} = require('../lib/util')
+const {HOST, PORT} = require('../lib/const')
 
 const db = createDb()
 const ctx = {db}
@@ -28,6 +30,26 @@ describe('As anonymous', () => {
             assert.equal(me.id, user.id)
           })
       })
+  })
+  describe('Interact with web socket', () => {
+    let server, wsServer
+    beforeEach(() => {
+      server = createServer()
+      wsServer = createWSServer({server})
+      return startServer(server)
+    })
+    afterEach(() => {
+      return stopWSServer(wsServer)
+        .then(() => stopServer(server))
+    })
+    it('Connect to public web socket', () => {
+      return new Promise((resolve, reject) => {
+        const ws = new WebSocket(`ws://${HOST}:${PORT}`)
+        ws.on('error', reject)
+        ws.on('pong', resolve)
+        ws.on('open', () => ws.ping())
+      })
+    })
   })
 })
 
