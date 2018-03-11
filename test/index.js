@@ -118,3 +118,7 @@ describe('As authorized user', () => {
       })
   })
 })
+
+it('Broken test', () => {
+  throw new Error('This is broken test')
+})
