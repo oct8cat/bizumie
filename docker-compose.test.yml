@@ -1,6 +1,6 @@
 sut:
   image: oct8cat/bizumie:latest
-  command: npm run lint && npm test
+  command: ./docker-entrypoint-test.sh
   environment:
     NODE_ENV: test
     DB_URL: mongodb://bizumie-mongo/bizumie-test
