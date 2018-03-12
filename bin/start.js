@@ -1,10 +1,8 @@
-const { createDb, connectDb, disconnectDb } = require('../lib/db')
 const {
-  stopServer,
-  createApp,
-  createServer,
-  startServer
-} = require('../lib/http')
+  db: { createDb, connectDb, disconnectDb },
+  http: { stopServer, createServer, startServer }
+} = require('bizumie-common')
+const { http: { createApp } } = require('..')
 
 const start = (exports.start = () => {
   const db = createDb()
@@ -12,7 +10,7 @@ const start = (exports.start = () => {
   const server = createServer(app)
   return connectDb(db)
     .then(() => startServer(server))
-    .then(server => ({ db, app, server }))
+    .then((server) => ({ db, app, server }))
 })
 
 exports.stop = ({ db, server, ...rest } = {}) => {
