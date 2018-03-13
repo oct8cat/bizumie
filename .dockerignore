@@ -1,5 +1,6 @@
 *.log
 .dockerignore
 Dockerfile
+docker-compose.test.yml
 node_modules
 public/uploads

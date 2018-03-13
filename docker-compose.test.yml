@@ -3,7 +3,7 @@ sut:
   command: ./docker-entrypoint-test.sh
   environment:
     NODE_ENV: test
-    DB_URL: mongodb://bizumie-mongo/bizumie-test
+    DB_URI: mongodb://bizumie-mongo/bizumie-test
   links:
     - bizumie-mongo
 
