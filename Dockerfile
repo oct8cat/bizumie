@@ -1,7 +1,8 @@
 FROM node:8
 
-ENV PORT 80
+ENV DB_URI mongodb://bizumie-mongo/bizumie-production
 ENV NPM_CONFIG_LOGLEVEL warn
+ENV PORT 80
 
 EXPOSE $PORT
 VOLUME /opt/bizumie/public/uploads
