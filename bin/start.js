@@ -1,5 +1,5 @@
 const {
-  env: { getURL },
+  env: { getEnvURL },
   db: { createDb, connectDb, disconnectDb },
   http: { stopServer, createServer, startServer }
 } = require('bizumie-common')
@@ -12,7 +12,7 @@ const start = (exports.start = () => {
   return connectDb(db)
     .then(() => startServer(server))
     .then((server) => {
-      console.log(`Now running as ${getURL()}`)
+      console.log(`Now running as ${getEnvURL()}`)
       return { app, server, db }
     })
 })

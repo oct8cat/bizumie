@@ -1,7 +1,7 @@
 {
   "name": "bizumie",
   "dependencies": {
-    "bizumie-common": "^1.0.4",
+    "bizumie-common": "1.0.5",
     "cors": "^2.8.4",
     "express": "^4.16.2",
     "express-graphql": "^0.6.11",

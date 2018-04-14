@@ -1,6 +1,6 @@
 FROM node:8
 
-ENV DB_URI mongodb://bizumie-mongo/bizumie-development
+ENV DB_URI mongodb://bizumie-mongo/bizumie
 
 WORKDIR /opt/bizumie
 COPY package.json package-lock.json ./
