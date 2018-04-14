@@ -1,7 +1,7 @@
 {
   "name": "bizumie",
   "dependencies": {
-    "bizumie-common": "1.0.5",
+    "bizumie-common": "1.0.6",
     "cors": "^2.8.4",
     "express": "^4.16.2",
     "express-graphql": "^0.6.11",
@@ -16,7 +16,7 @@
   },
   "scripts": {
     "start": "node bin/start.js",
-    "dev": "nodemon bin/start.js",
+    "dev": "PORT=3000 nodemon bin/start.js",
     "test": "NODE_ENV=test mocha",
     "docker-test": "docker-compose -f docker-compose.test.yml run sut",
     "lint": "standard",
