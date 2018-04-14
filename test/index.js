@@ -1,10 +1,18 @@
 /* eslint-env mocha */
+const { path, is } = require('ramda')
 const supertest = require('supertest')
-const path = require('path')
+const { resolve: resolvePath } = require('path')
 const assert = require('assert')
 const {
   user: { createUserToken },
-  db: { createDb, connectDb, disconnectDb, getUserModel, getUploadModel }
+  db: {
+    createDb,
+    connectDb,
+    disconnectDb,
+    getUserModel,
+    getUploadModel,
+    getPostModel
+  }
 } = require('bizumie-common')
 const { graphql: { exec, schema, rs }, http: { createApp } } = require('..')
 
@@ -15,6 +23,7 @@ const ctx = { db }
 
 const userModel = getUserModel(db)
 const uploadModel = getUploadModel(db)
+const postModel = getPostModel(db)
 
 let user
 
@@ -48,7 +57,7 @@ it('As authorized user, Upload/download file', () => {
   return req
     .post('/upload')
     .set('authorization', `Bearer ${createUserToken(user)}`)
-    .attach('upload', path.resolve(__dirname, 'image.png'))
+    .attach('upload', resolvePath(__dirname, 'image.png'))
     .then(({ error, body, ...rest }) => {
       if (error) return Promise.reject(Object.assign(new Error(), body))
       const { upload } = body
@@ -67,10 +76,35 @@ it('As authorized user, view uploads', () => {
       return req
         .post('/upload')
         .set('authorization', `Bearer ${createUserToken(user)}`)
-        .attach('upload', path.resolve(__dirname, 'image.png'))
+        .attach('upload', resolvePath(__dirname, 'image.png'))
     })
     .then(() => exec(schema, rs.uploadsString, {}, { user, ...ctx }))
     .then(({ data: { uploads } }) => {
       assert.equal(uploads[0].user.id, user.id)
+    })
+})
+it('As authorized user, view posts', () => {
+  return postModel
+    .remove({})
+    .then(() => exec(schema, rs.postsString, {}, { user, ...ctx }))
+    .then(({ errors, data }) => {
+      assert.equal(errors, null)
+      assert.ok(is(Array, data.posts))
+    })
+})
+it('As authorized user, create post', () => {
+  return postModel
+    .remove({})
+    .then(() =>
+      exec(
+        schema,
+        rs.createPostString,
+        { input: { title: 'test', text: 'test' } },
+        { user, ...ctx }
+      )
+    )
+    .then(({ errors, data }) => {
+      assert.equal(errors, null)
+      assert.equal(data.createPost.post.author.id, user.id)
     })
 })
