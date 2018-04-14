@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+SSH_KEY_FILE=/tmp/ssh_key
+STACK_FILE=bizumie.yml
+STACK_NAME=bizumie
+DEPLOY_USER=ubuntu
+DEPLOY_HOST=bizumie.redroach.es
+
+echo "$SSH_KEY" > $SSH_KEY_FILE
+chmod 600 $SSH_KEY_FILE
+ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+ssh -i $SSH_KEY_FILE $DEPLOY_USER@$DEPLOY_HOST \
+  docker stack deploy -c $STACK_FILE $STACK_NAME
