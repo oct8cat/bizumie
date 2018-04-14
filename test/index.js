@@ -3,15 +3,10 @@ const supertest = require('supertest')
 const path = require('path')
 const assert = require('assert')
 const {
-  http: { createUserJWT },
+  user: { createUserToken },
   db: { createDb, connectDb, disconnectDb, getUserModel, getUploadModel }
 } = require('bizumie-common')
-const { http: { createApp } } = require('..')
-const {
-  exec,
-  schema,
-  requestStrings: { uploadsString, meString }
-} = require('../lib/graphql')
+const { graphql: { exec, schema, rs }, http: { createApp } } = require('..')
 
 const db = createDb()
 const app = createApp({ db })
@@ -32,27 +27,27 @@ before(() => {
 
 after(() => disconnectDb(db))
 
-it('View own profile', () => {
-  return exec(schema, meString, {}, { user, ...ctx }).then(
+it('As authorized user, view my profile', () => {
+  return exec(schema, rs.meString, {}, { user, ...ctx }).then(
     ({ data: { me } }) => {
       assert.equal(me.id, user.id)
       assert.equal(me.displayName, user.displayName)
     }
   )
 })
-it('Authorize with JWT', () => {
+it('As registered user, authenticate using JWT', () => {
   return req
     .post('/graphql')
-    .set('authorization', `Bearer ${createUserJWT(user)}`)
-    .send({ query: meString })
+    .set('authorization', `Bearer ${createUserToken(user)}`)
+    .send({ query: rs.meString })
     .then(({ body: { data: { me } } }) => {
       assert.equal(me.id, user.id)
     })
 })
-it('Upload/download file', () => {
+it('As authorized user, Upload/download file', () => {
   return req
     .post('/upload')
-    .set('authorization', `Bearer ${createUserJWT(user)}`)
+    .set('authorization', `Bearer ${createUserToken(user)}`)
     .attach('upload', path.resolve(__dirname, 'image.png'))
     .then(({ error, body, ...rest }) => {
       if (error) return Promise.reject(Object.assign(new Error(), body))
@@ -63,18 +58,18 @@ it('Upload/download file', () => {
       })
     })
 })
-it('View uploads', () => {
+it('As authorized user, view uploads', () => {
   return uploadModel
     .remove({})
-    .then(() => exec(schema, uploadsString, {}, { user, ...ctx }))
+    .then(() => exec(schema, rs.uploadsString, {}, { user, ...ctx }))
     .then(({ data: { uploads } }) => assert.equal(uploads.length, 0))
     .then(() => {
       return req
         .post('/upload')
-        .set('authorization', `Bearer ${createUserJWT(user)}`)
+        .set('authorization', `Bearer ${createUserToken(user)}`)
         .attach('upload', path.resolve(__dirname, 'image.png'))
     })
-    .then(() => exec(schema, uploadsString, {}, { user, ...ctx }))
+    .then(() => exec(schema, rs.uploadsString, {}, { user, ...ctx }))
     .then(({ data: { uploads } }) => {
       assert.equal(uploads[0].user.id, user.id)
     })
